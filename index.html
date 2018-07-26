@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>On va ou?</title>
+</head>
+<body>
+<div id="app">
+    <ul>
+        <input type="date" v-model="startDate" placeholder="Tu pars quand?">
+        <input type="date" v-model="endDate" placeholder="Tu reviens quand?">
+        <li v-for="record in records">
+            Ça part à {{ record.startTime }} pour {{ record.destination }}. Retour à {{ record.endTime }}
+        </li>
+    </ul>
+</div>
+<form id="mainForm">
+
+</form>
+<ul id="resultField"></ul>
+<!-- development version, includes helpful console warnings -->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/vue-async-computed@3.3.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.10/lodash.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
