@@ -7,7 +7,7 @@ const req = async (dataset, facets, refine) => {
 		`refine.${facet}=${refine[facet]}`
 	).join('&')
 
-	const response = await fetch(`${BASE_URL}?${datasetString}&${facetString}&${refineString}&rows=50`)
+	const response = await fetch(`${BASE_URL}?${datasetString}&${facetString}&${refineString}&rows=100`)
 	const json = await response.json()
 
 	return json['records']
@@ -16,42 +16,52 @@ const req = async (dataset, facets, refine) => {
 const app = new Vue({
 	el: '#app',
 	data: {
-		startDate: null,
-		endDate: null
+		startDate: "2018-07-28",
+		endDate: "2018-07-29"
 	},
 	asyncComputed: {
-		records: async function () {
-			if (this.startDate == null || this.endDate == null) return []
-			const startRequest = req('tgvmax', ['origine', 'destination', 'date'], {
-				date: this.startDate,
-				origine: 'PARIS (intramuros)'
-			})
+		departureHash: {
+			async get() {
+				if (this.startDate == null) return {}
 
-			const endRequest = req('tgvmax', ['origine', 'destination', 'date'], {
-				date: this.startDate,
-				destination: 'PARIS (intramuros)'
-			})
+				const request = req('tgvmax', ['origine', 'destination', 'date'], {
+					date: this.startDate,
+					origine: 'PARIS (intramuros)'
+				})
 
-			const startList = await startRequest
-			const endList = await endRequest
+				const list = await request
 
-			// We want the later result
-			endList.reverse()
+				return _.reduce(list, (hash, {fields}) => {
+					if (hash[fields.destination] == null) hash[fields.destination] = []
+					hash[fields.destination].push(_.pick(fields, 'heure_depart', 'heure_arrivee', 'origine', 'destination'))
+					return hash
+				}, {})
+			},
+			default: {}
+		},
+		arrivalHash: {
+			async get() {
+				if (this.endDate == null) return {}
 
-			return _.flatMap(startList, startTrip =>
-				endList
-					.filter(endTrip =>
-						startTrip.fields.destination === endTrip.fields.origine
-					)
-					.map(endTrip => {
-						console.log(startTrip.fields.heure_depart)
-						return ({
-							startTime: startTrip.fields.heure_depart,
-							endTime: endTrip.fields.heure_depart,
-							destination: startTrip.fields.destination
-						})
-					})
-			)
+				const request = req('tgvmax', ['origine', 'destination', 'date'], {
+					date: this.endDate,
+					destination: 'PARIS (intramuros)'
+				})
+
+				const list = await request
+
+				return _.reduce(list, (hash, {fields}) => {
+					if (hash[fields.origine] == null) hash[fields.origine] = []
+					hash[fields.origine].push(_.pick(fields, 'heure_depart', 'heure_arrivee', 'origine', 'destination'))
+					return hash
+				}, {})
+			},
+			default: {}
+		},
+	},
+	computed: {
+		destinations () {
+			return Object.keys(this.arrivalHash).filter(k => k in this.departureHash).sort()
 		}
 	}
 })

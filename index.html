@@ -6,11 +6,33 @@
 </head>
 <body>
 <div id="app">
+    <input type="date" v-model="startDate" placeholder="Tu pars quand?">
+    <input type="date" v-model="endDate" placeholder="Tu reviens quand?">
     <ul>
-        <input type="date" v-model="startDate" placeholder="Tu pars quand?">
-        <input type="date" v-model="endDate" placeholder="Tu reviens quand?">
-        <li v-for="record in records">
-            Ça part à {{ record.startTime }} pour {{ record.destination }}. Retour à {{ record.endTime }}
+        <li v-for="destination in destinations">
+            <strong>{{ destination }}</strong>
+            <div>
+                Aller:
+                <ul v-if="departureHash[destination].length > 1">
+                    <li v-for="trip in departureHash[destination]">
+                        {{ trip.heure_depart }} -- {{ trip.heure_arrivee }}
+                    </li>
+                </ul>
+                <template v-else>
+                    {{ departureHash[destination][0].heure_depart }} -- {{ departureHash[destination][0].heure_arrivee }}
+                </template>
+            </div>
+            <div>
+                Retour:
+                <ul  v-if="arrivalHash[destination].length > 1">
+                    <li v-for="trip in arrivalHash[destination]">
+                        {{ trip.heure_depart }} -- {{ trip.heure_arrivee }}
+                    </li>
+                </ul>
+                <template v-else>
+                    {{ arrivalHash[destination][0].heure_depart }} -- {{ arrivalHash[destination][0].heure_arrivee }}
+                </template>
+            </div>
         </li>
     </ul>
 </div>
