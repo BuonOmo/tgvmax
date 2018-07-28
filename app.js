@@ -16,17 +16,20 @@ const req = async (dataset, facets, refine) => {
 const app = new Vue({
 	el: '#app',
 	data: {
-		startDate: "2018-07-28",
-		endDate: "2018-07-29"
+		localisation: 'PARIS (intramuros)',
+		startDate: '2018-07-28',
+		endDate: '2018-07-29'
 	},
 	asyncComputed: {
 		departureHash: {
 			async get() {
 				if (this.startDate == null) return {}
+				if (_.isNil(this.startDate)) return {}
 
-				const request = req('tgvmax', ['origine', 'destination', 'date'], {
+				const request = req('tgvmax', ['origine', 'destination', 'date', 'od_happy_card'], {
 					date: this.startDate,
-					origine: 'PARIS (intramuros)'
+					origine: this.localisation,
+					od_happy_card: 'OUI'
 				})
 
 				const list = await request
@@ -42,10 +45,12 @@ const app = new Vue({
 		arrivalHash: {
 			async get() {
 				if (this.endDate == null) return {}
+				if (_.isNil(this.endDate)) return {}
 
-				const request = req('tgvmax', ['origine', 'destination', 'date'], {
+				const request = req('tgvmax', ['origine', 'destination', 'date', 'od_happy_card'], {
 					date: this.endDate,
-					destination: 'PARIS (intramuros)'
+					destination: this.localisation,
+					od_happy_card: 'OUI'
 				})
 
 				const list = await request
@@ -57,10 +62,10 @@ const app = new Vue({
 				}, {})
 			},
 			default: {}
-		},
+		}
 	},
 	computed: {
-		destinations () {
+		destinations() {
 			return Object.keys(this.arrivalHash).filter(k => k in this.departureHash).sort()
 		}
 	}
