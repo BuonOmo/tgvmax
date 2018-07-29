@@ -13,17 +13,20 @@ const req = async (dataset, facets, refine) => {
 	return json['records']
 }
 
+const daysFromNow = days => new Date(_.now() + days * 1000 * 60 * 60 * 24)
+
 const app = new Vue({
 	el: '#app',
 	data: {
 		localisation: 'PARIS (intramuros)',
-		startDate: '2018-07-28',
-		endDate: '2018-07-29'
+		startDate: daysFromNow(3),
+		endDate: daysFromNow(5),
+		departureCount: 0,
+		arrivalCount: 0
 	},
 	asyncComputed: {
 		departureHash: {
 			async get() {
-				if (this.startDate == null) return {}
 				if (_.isNil(this.startDate)) return {}
 
 				const request = req('tgvmax', ['origine', 'destination', 'date', 'od_happy_card'], {
@@ -33,6 +36,8 @@ const app = new Vue({
 				})
 
 				const list = await request
+
+				this.departureCount = list.length
 
 				return _.reduce(list, (hash, {fields}) => {
 					if (hash[fields.destination] == null) hash[fields.destination] = []
@@ -44,7 +49,6 @@ const app = new Vue({
 		},
 		arrivalHash: {
 			async get() {
-				if (this.endDate == null) return {}
 				if (_.isNil(this.endDate)) return {}
 
 				const request = req('tgvmax', ['origine', 'destination', 'date', 'od_happy_card'], {
@@ -54,6 +58,8 @@ const app = new Vue({
 				})
 
 				const list = await request
+
+				this.arrivalCount = list.length
 
 				return _.reduce(list, (hash, {fields}) => {
 					if (hash[fields.origine] == null) hash[fields.origine] = []
