@@ -9,6 +9,18 @@
     <input type="text" v-model="localisation" disabled>
     <input type="date" v-model="startDate">
     <input type="date" v-model="endDate">
+
+    <div v-if="error">{{ error }}</div>
+
+    <div>
+        <template v-if="departureCount == 100">Plus de</template>
+        {{ departureCount }} aller trouvés
+    </div>
+
+    <div>
+        <template v-if="arrivalCount == 100">Plus de</template>
+        {{ arrivalCount }} retour trouvés
+    </div>
     <ul>
         <li v-for="destination in destinations">
             <strong>{{ destination }}</strong>

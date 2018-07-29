@@ -15,14 +15,19 @@ const req = async (dataset, facets, refine) => {
 
 const daysFromNow = days => new Date(_.now() + days * 1000 * 60 * 60 * 24)
 
+const sncfDateFormat = date => [_.padStart(date.getFullYear(),  4, "0"),
+                                _.padStart(date.getMonth() + 1, 2, "0"),
+                                _.padStart(date.getDate(),      2, "0")].join`-`
+
 const app = new Vue({
 	el: '#app',
 	data: {
 		localisation: 'PARIS (intramuros)',
-		startDate: daysFromNow(3),
-		endDate: daysFromNow(5),
+		startDate: sncfDateFormat(daysFromNow(3)),
+		endDate: sncfDateFormat(daysFromNow(5)),
 		departureCount: 0,
-		arrivalCount: 0
+		arrivalCount: 0,
+		error: null
 	},
 	asyncComputed: {
 		departureHash: {
@@ -36,6 +41,11 @@ const app = new Vue({
 				})
 
 				const list = await request
+				if (_.isNil(list)) {
+					this.departureCount = 0
+					this.error = "Une erreur 500 est survenu sur l'API SNCF."
+					return []
+				}
 
 				this.departureCount = list.length
 
@@ -58,6 +68,11 @@ const app = new Vue({
 				})
 
 				const list = await request
+				if (_.isNil(list)) {
+					this.departureCount = 0
+					this.error = "Une erreur 500 est survenu sur l'API SNCF."
+					return []
+				}
 
 				this.arrivalCount = list.length
 
