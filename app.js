@@ -19,15 +19,23 @@ const sncfDateFormat = date => [_.padStart(date.getFullYear(),  4, "0"),
                                 _.padStart(date.getMonth() + 1, 2, "0"),
                                 _.padStart(date.getDate(),      2, "0")].join`-`
 
+const initialLocation = 'PARIS (intramuros)'
+
 const app = new Vue({
 	el: '#app',
 	data: {
-		localisation: 'PARIS (intramuros)',
+		location: initialLocation,
+		debouncedLocation: initialLocation,
 		startDate: sncfDateFormat(daysFromNow(3)),
 		endDate: sncfDateFormat(daysFromNow(5)),
 		departureCount: 0,
 		arrivalCount: 0,
 		error: null
+	},
+	watch: {
+		location: _.debounce(function(val) {
+			this.debouncedLocation = val
+			}, 1000)
 	},
 	asyncComputed: {
 		departureHash: {
@@ -36,7 +44,7 @@ const app = new Vue({
 
 				const request = req('tgvmax', ['origine', 'destination', 'date', 'od_happy_card'], {
 					date: this.startDate,
-					origine: this.localisation,
+					origine: this.debouncedLocation,
 					od_happy_card: 'OUI'
 				})
 
@@ -63,7 +71,7 @@ const app = new Vue({
 
 				const request = req('tgvmax', ['origine', 'destination', 'date', 'od_happy_card'], {
 					date: this.endDate,
-					destination: this.localisation,
+					destination: this.debouncedLocation,
 					od_happy_card: 'OUI'
 				})
 
