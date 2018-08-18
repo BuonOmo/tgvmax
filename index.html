@@ -6,7 +6,10 @@
 </head>
 <body>
 <div id="app">
-    <input type="text" v-model="location">
+    <input type="text" v-model="location" list="locationOptions">
+    <datalist id="locationOptions">
+        <option v-for="option in locationOptions" :value="option">{{ _.first(_.words(option)) }}</option>
+    </datalist>
     <input type="date" v-model="startDate">
     <input type="date" v-model="endDate">
 

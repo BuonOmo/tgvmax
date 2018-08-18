@@ -13,21 +13,39 @@ const req = async (dataset, facets, refine) => {
 	return json['records']
 }
 
+const getQueryVariable = variable => {
+	const query = window.location.search.substring(1);
+	const vars = query.split('&');
+	for (let i = 0; i < vars.length; i++) {
+		let pair = vars[i].split('=');
+		if (decodeURIComponent(pair[0]) === variable) {
+			return decodeURIComponent(pair[1]);
+		}
+	}
+}
+
 const daysFromNow = days => new Date(_.now() + days * 1000 * 60 * 60 * 24)
 
 const sncfDateFormat = date => [_.padStart(date.getFullYear(),  4, "0"),
                                 _.padStart(date.getMonth() + 1, 2, "0"),
                                 _.padStart(date.getDate(),      2, "0")].join`-`
 
-const initialLocation = 'PARIS (intramuros)'
+
+
+
+const locationOptions = [
+	'PARIS (intramuros)',
+	'LYON (gares intramuros)'
+]
 
 const app = new Vue({
 	el: '#app',
 	data: {
-		location: initialLocation,
-		debouncedLocation: initialLocation,
-		startDate: sncfDateFormat(daysFromNow(3)),
-		endDate: sncfDateFormat(daysFromNow(5)),
+		location: _.first(locationOptions),
+		locationOptions: locationOptions,
+		debouncedLocation: _.first(locationOptions),
+		startDate: getQueryVariable('start') || sncfDateFormat(daysFromNow(3)),
+		endDate: getQueryVariable('end') || sncfDateFormat(daysFromNow(5)),
 		departureCount: 0,
 		arrivalCount: 0,
 		error: null
