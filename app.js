@@ -1,5 +1,7 @@
 const BASE_URL = 'https://data.sncf.com/api/records/1.0/search/'
 
+const ROWS = 1000
+
 const req = async (dataset, facets, refine) => {
 	const facetString = `facet=${facets.join('&facet=')}`
 	const datasetString = `dataset=${dataset}`
@@ -7,10 +9,10 @@ const req = async (dataset, facets, refine) => {
 		`refine.${facet}=${refine[facet]}`
 	).join('&')
 
-	const response = await fetch(`${BASE_URL}?${datasetString}&${facetString}&${refineString}&rows=100`)
+	const response = await fetch(`${BASE_URL}?${datasetString}&${facetString}&${refineString}&rows=${ROWS}`)
 	const json = await response.json()
 
-	return json['records']
+	return json.records
 }
 
 const getQueryVariable = variable => {
@@ -33,22 +35,24 @@ const sncfDateFormat = date => [_.padStart(date.getFullYear(),  4, "0"),
 
 
 
-const locationOptions = [
+const defaultLocationOptions = [
 	'PARIS (intramuros)',
-	'LYON (gares intramuros)'
+	'LYON (gares intramuros)',
+	'GRENOBLE'
 ]
 
 const app = new Vue({
 	el: '#app',
 	data: {
-		location: _.first(locationOptions),
-		locationOptions: locationOptions,
-		debouncedLocation: _.first(locationOptions),
+		location: _.first(defaultLocationOptions),
+		locationOptions: defaultLocationOptions,
+		debouncedLocation: _.first(defaultLocationOptions),
 		startDate: getQueryVariable('start') || sncfDateFormat(daysFromNow(3)),
 		endDate: getQueryVariable('end') || sncfDateFormat(daysFromNow(5)),
 		departureCount: 0,
 		arrivalCount: 0,
-		error: null
+		error: null,
+		maxResults: ROWS
 	},
 	watch: {
 		location: _.debounce(function(val) {
@@ -59,6 +63,10 @@ const app = new Vue({
 		departureHash: {
 			async get() {
 				if (_.isNil(this.startDate)) return {}
+				if (this.debouncedLocation.length < 1) {
+					this.departureCount = 0
+					return {}
+				}
 
 				const request = req('tgvmax', ['origine', 'destination', 'date', 'od_happy_card'], {
 					date: this.startDate,
@@ -75,6 +83,14 @@ const app = new Vue({
 
 				this.departureCount = list.length
 
+				locs = new Set(this.locationOptions)
+				_.each(list, ({ fields: { destination } }) => {
+					locs.add(destination)
+				})
+				if (locs.size !== this.locationOptions.length) {
+					this.locationOptions = [...locs].sort()
+				}
+
 				return _.reduce(list, (hash, {fields}) => {
 					if (hash[fields.destination] == null) hash[fields.destination] = []
 					hash[fields.destination].push(_.pick(fields, 'heure_depart', 'heure_arrivee', 'origine', 'destination'))
@@ -86,6 +102,10 @@ const app = new Vue({
 		arrivalHash: {
 			async get() {
 				if (_.isNil(this.endDate)) return {}
+				if (this.debouncedLocation.length < 1) {
+					this.arrivalCount = 0
+					return {}
+				}
 
 				const request = req('tgvmax', ['origine', 'destination', 'date', 'od_happy_card'], {
 					date: this.endDate,

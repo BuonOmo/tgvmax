@@ -1,3 +1,3 @@
 # tgvmax
 
-Les trajets TGVMAX au départ de Paris (et quelques gares environnantes) à direction de partout. Sous forme d'aller-retour.
+Tes aller-retour TGVMAX pour un weekend. Choisis ta ville, ta date de départ et d'arrivée, et regarde ou le vent te mène!
